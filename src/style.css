@@ -10,7 +10,8 @@
 #pages-container {
   display: flex;
   flex-direction: row;
-  overflow-x: scroll;
+  overflow: hidden;
   height: 100vh;
   position: relative;
+  scroll-snap-type: x mandatory;
 }

@@ -15,20 +15,9 @@ const scrollToPage = (pageIndex: number) => {
   }
 };
 
-const lockScrolling = () => {
-  const container = document.getElementById("pages-container");
-  if (container) container.style.overflow = "hidden"; // Disable scrolling
-};
-
-const unlockScrolling = () => {
-  const container = document.getElementById("pages-container");
-  if (container) container.style.overflow = ""; // Re-enable scrolling
-};
-
 const nextPage = (hasDebounce: boolean = false) => {
   if (isScrolling) return;
   isScrolling = true;
-  lockScrolling(); // Disable scrolling
   currentPage.value = (currentPage.value + 1) % pages.value.length;
   scrollToPage(currentPage.value);
 
@@ -39,7 +28,6 @@ const nextPage = (hasDebounce: boolean = false) => {
 const prevPage = (hasDebounce: boolean = false) => {
   if (isScrolling) return;
   isScrolling = true;
-  lockScrolling(); // Disable scrolling
   currentPage.value =
     (currentPage.value - 1 + pages.value.length) % pages.value.length;
   scrollToPage(currentPage.value);
@@ -99,7 +87,6 @@ const handleTouch = (() => {
 
 const resetScrolling = () => {
   isScrolling = false;
-  unlockScrolling();
 };
 
 const resetScrollingDebounce = () => {
@@ -121,12 +108,11 @@ onUnmounted(() => {
   window.removeEventListener("wheel", handleWheel);
   window.removeEventListener("touchstart", handleTouch.start);
   window.removeEventListener("touchend", handleTouch.move);
-  unlockScrolling(); // Ensure scrolling is enabled
 });
 </script>
 
 <template>
-  <div id="pages-container" class="h-screen overflow-auto">
+  <div id="pages-container" class="h-screen">
     <Page v-for="i in 15" :key="i" :id="'page-' + i" ref="pages">
       <div class="border-l-4 w-full h-full flex justify-center items-center">
         <h1 class="font-bold text-6xl">Page {{ i }}</h1>
@@ -135,8 +121,4 @@ onUnmounted(() => {
   </div>
 </template>
 
-<style scoped>
-#pages-container {
-  scroll-snap-type: x mandatory;
-}
-</style>
+<style scoped></style>
