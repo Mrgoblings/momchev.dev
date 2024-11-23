@@ -54,37 +54,6 @@ const handleWheel = (event: WheelEvent) => {
   }
 };
 
-const handleTouch = (() => {
-  let startX = 0;
-  let startY = 0;
-
-  return {
-    start(event: TouchEvent) {
-      const touch = event.touches[0];
-      startX = touch.clientX;
-      startY = touch.clientY;
-    },
-    move(event: TouchEvent) {
-      if (isScrolling) return;
-
-      isScrolling = true;
-      const touch = event.changedTouches[0];
-      const deltaX = touch.clientX - startX;
-      const deltaY = touch.clientY - startY;
-
-      if (Math.abs(deltaX) > 50 || Math.abs(deltaY) > 50) {
-        if (Math.abs(deltaX) > Math.abs(deltaY)) {
-          if (deltaX < 0) nextPage(true); // Swipe left
-          else prevPage(true); // Swipe right
-        } else {
-          if (deltaY < 0) nextPage(true); // Swipe up
-          else prevPage(true); // Swipe down
-        }
-      }
-    },
-  };
-})();
-
 const resetScrolling = () => {
   isScrolling = false;
 };
@@ -99,26 +68,44 @@ onMounted(async () => {
 
   window.addEventListener("keydown", handleKeydown);
   window.addEventListener("wheel", handleWheel, { passive: true });
-  window.addEventListener("touchstart", handleTouch.start, { passive: true });
-  window.addEventListener("touchend", handleTouch.move, { passive: true });
 });
 
 onUnmounted(() => {
   window.removeEventListener("keydown", handleKeydown);
   window.removeEventListener("wheel", handleWheel);
-  window.removeEventListener("touchstart", handleTouch.start);
-  window.removeEventListener("touchend", handleTouch.move);
 });
 </script>
 
 <template>
-  <div id="pages-container" class="h-screen">
+  <div id="pages-container" class="h-screen relative">
+    <!-- Pages -->
     <Page v-for="i in 15" :key="i" :id="'page-' + i" ref="pages">
       <div class="border-l-4 w-full h-full flex justify-center items-center">
         <h1 class="font-bold text-6xl">Page {{ i }}</h1>
       </div>
     </Page>
   </div>
+  <!-- Left Button -->
+  <button
+    @click="prevPage()"
+    class="xl:hidden fixed left-4 top-1/2 transform -translate-y-1/2 bg-gray-800 text-white p-4 rounded-full shadow-lg"
+  >
+    ←
+  </button>
+
+  <!-- Right Button -->
+  <button
+    @click="nextPage()"
+    class="xl:hidden fixed right-4 top-1/2 transform -translate-y-1/2 bg-gray-800 text-white p-4 rounded-full shadow-lg"
+  >
+    →
+  </button>
 </template>
 
-<style scoped></style>
+<style scoped>
+/* Add additional styling for buttons */
+button {
+  font-size: 24px;
+  cursor: pointer;
+}
+</style>
