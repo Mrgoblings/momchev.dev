@@ -2,6 +2,8 @@
 import { ref, Ref, onMounted, nextTick, onUnmounted } from "vue";
 import Page from "./components/Page.vue";
 
+const DEBOUNSE_TIME = 1000; // 1 second
+
 const pages: Ref<(InstanceType<typeof Page> | null)[]> = ref([]);
 const currentPage = ref(2);
 let isScrolling = false; // To prevent multiple triggers during animation
@@ -23,23 +25,27 @@ const unlockScrolling = () => {
   if (container) container.style.overflow = ""; // Re-enable scrolling
 };
 
-const nextPage = () => {
+const nextPage = (hasDebounce: boolean = false) => {
   if (isScrolling) return;
   isScrolling = true;
   lockScrolling(); // Disable scrolling
   currentPage.value = (currentPage.value + 1) % pages.value.length;
   scrollToPage(currentPage.value);
-  resetScrolling();
+
+  if (hasDebounce) resetScrollingDebounce();
+  else resetScrolling();
 };
 
-const prevPage = () => {
+const prevPage = (hasDebounce: boolean = false) => {
   if (isScrolling) return;
   isScrolling = true;
   lockScrolling(); // Disable scrolling
   currentPage.value =
     (currentPage.value - 1 + pages.value.length) % pages.value.length;
   scrollToPage(currentPage.value);
-  resetScrolling();
+
+  if (hasDebounce) resetScrollingDebounce();
+  else resetScrolling();
 };
 
 const handleKeydown = (event: KeyboardEvent) => {
@@ -54,9 +60,9 @@ const handleWheel = (event: WheelEvent) => {
   if (isScrolling) return;
 
   if (event.deltaY > 0 || event.deltaX > 0) {
-    nextPage();
+    nextPage(true);
   } else if (event.deltaY < 0 || event.deltaX < 0) {
-    prevPage();
+    prevPage(true);
   }
 };
 
@@ -80,11 +86,11 @@ const handleTouch = (() => {
 
       if (Math.abs(deltaX) > 50 || Math.abs(deltaY) > 50) {
         if (Math.abs(deltaX) > Math.abs(deltaY)) {
-          if (deltaX < 0) nextPage(); // Swipe left
-          else prevPage(); // Swipe right
+          if (deltaX < 0) nextPage(true); // Swipe left
+          else prevPage(true); // Swipe right
         } else {
-          if (deltaY < 0) nextPage(); // Swipe up
-          else prevPage(); // Swipe down
+          if (deltaY < 0) nextPage(true); // Swipe up
+          else prevPage(true); // Swipe down
         }
       }
     },
@@ -92,10 +98,12 @@ const handleTouch = (() => {
 })();
 
 const resetScrolling = () => {
-  setTimeout(() => {
-    isScrolling = false;
-    unlockScrolling(); // Enable scrolling
-  }, 1000); // Match animation speed
+  isScrolling = false;
+  unlockScrolling();
+};
+
+const resetScrollingDebounce = () => {
+  setTimeout(resetScrolling, DEBOUNSE_TIME);
 };
 
 onMounted(async () => {
